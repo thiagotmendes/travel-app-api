@@ -1,0 +1,53 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: onfly_app
+        volumes:
+            - .:/var/www
+        ports:
+            - 8000:8000
+        depends_on:
+            - db
+        environment:
+            - DB_HOST=db
+            - DB_PORT=3306
+            - DB_DATABASE=laravel
+            - DB_USERNAME=root
+            - DB_PASSWORD=root
+        command: sh commands/wait-for.sh
+
+    db:
+        image: mysql:8.0
+        container_name: onfly_db
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: laravel
+        ports:
+            - 3306:3306
+        volumes:
+            - dbdata:/var/lib/mysql
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: onfly_phpmyadmin
+        restart: always
+        ports:
+            - 8081:80
+        environment:
+            PMA_HOST: db
+            MYSQL_ROOT_PASSWORD: root
+        depends_on:
+            - db
+#
+#    redis:
+#        image: redis:alpine
+#        container_name: laravel_redis
+#        ports:
+#            - 6379:6379
+#        restart: always
+
+volumes:
+    dbdata:
