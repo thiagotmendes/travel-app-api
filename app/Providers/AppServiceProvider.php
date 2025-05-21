@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Domain\TravelRequest\Interfaces\UserRepositoryInterface;
+use App\Infrastructure\Persistence\Eloquent\UserRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -12,6 +14,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         //
+        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
     }
 
     /**
