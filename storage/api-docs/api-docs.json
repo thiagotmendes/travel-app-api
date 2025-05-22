@@ -84,7 +84,7 @@
                 "tags": [
                     "Autenticação"
                 ],
-                "summary": "Retorna informações do usuário autenticado para fins de testes de authenticação",
+                "summary": "Retorna informações do usuário para fins de testes de authenticação",
                 "operationId": "bf6ab59c311b7be30e2ca2c59033bf92",
                 "responses": {
                     "200": {
@@ -206,12 +206,283 @@
                     }
                 }
             }
+        },
+        "/api/travel-requests": {
+            "get": {
+                "tags": [
+                    "Pedidos de Viagem"
+                ],
+                "summary": "Listar pedidos de viagem",
+                "operationId": "4c9ecb789cdd9ce572f0bfee8d31e164",
+                "parameters": [
+                    {
+                        "name": "destination",
+                        "in": "query",
+                        "description": "Filtrar por destino",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "user_id",
+                        "in": "query",
+                        "description": "Filtrar por ID do usuário",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "departure_date",
+                        "in": "query",
+                        "description": "Filtrar por data de ida (YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "return_date",
+                        "in": "query",
+                        "description": "Filtrar por data de volta (YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de pedidos de viagem"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Pedidos de Viagem"
+                ],
+                "summary": "Criar um novo pedido de viagem",
+                "operationId": "139634905c6328777975b7b7c36228dc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "destination",
+                                    "departure_date",
+                                    "return_date",
+                                    "status",
+                                    "user_id"
+                                ],
+                                "properties": {
+                                    "destination": {
+                                        "type": "string",
+                                        "example": "São Paulo"
+                                    },
+                                    "departure_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-06-01"
+                                    },
+                                    "return_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-06-10"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "solicitado"
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pedido criado com sucesso"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                }
+            }
+        },
+        "/api/travel-requests/{id}": {
+            "get": {
+                "tags": [
+                    "Pedidos de Viagem"
+                ],
+                "summary": "Visualizar um pedido de viagem",
+                "operationId": "afaf1a9733e3c434d5cb835c9fae38b9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do pedido de viagem",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dados do pedido"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Pedidos de Viagem"
+                ],
+                "summary": "Atualizar todos os dados do pedido de viagem",
+                "operationId": "c922c0db231975f5a10974ca11fad586",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "destination",
+                                    "departure_date",
+                                    "return_date",
+                                    "status",
+                                    "user_id"
+                                ],
+                                "properties": {
+                                    "destination": {
+                                        "type": "string",
+                                        "example": "Salvador"
+                                    },
+                                    "departure_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-07-01"
+                                    },
+                                    "return_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-07-10"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "aprovado"
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pedido atualizado com sucesso"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Pedidos de Viagem"
+                ],
+                "summary": "Excluir um pedido de viagem",
+                "operationId": "8ca78b5148428358a3739845d3e0e8eb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pedido excluído com sucesso"
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Pedidos de Viagem"
+                ],
+                "summary": "Atualizar apenas o status do pedido",
+                "operationId": "c133fbf0d5e2a7f32785a6462cb2c819",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "example": "cancelado"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status atualizado com sucesso"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                }
+            }
         }
     },
     "tags": [
         {
             "name": "Autenticação",
             "description": "Autenticação"
+        },
+        {
+            "name": "Pedidos de Viagem",
+            "description": "Pedidos de Viagem"
         }
     ]
 }

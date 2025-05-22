@@ -13,11 +13,42 @@ use Illuminate\Support\Facades\Validator;
 class TravelRequestController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/api/travel-requests",
+     *     summary="Listar pedidos de viagem",
+     *     tags={"Pedidos de Viagem"},
+     *     @OA\Parameter(name="destination", in="query", required=false, description="Filtrar por destino", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="user_id", in="query", required=false, description="Filtrar por ID do usuário", @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="departure_date", in="query", required=false, description="Filtrar por data de ida (YYYY-MM-DD)", @OA\Schema(type="string", format="date")),
+     *     @OA\Parameter(name="return_date", in="query", required=false, description="Filtrar por data de volta (YYYY-MM-DD)", @OA\Schema(type="string", format="date")),
+     *     @OA\Response(response=200, description="Lista de pedidos de viagem")
+     * )
      */
-    public function index()
+    public function index(Request $request)
     {
-        return TravelRequest::all();
+        $query = TravelRequest::query();
+
+        if ($request->filled('destination')) {
+            $query->where('destination', 'like', '%' . $request->destination . '%');
+        }
+
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        if ($request->filled('departure_date')) {
+            $date = \Carbon\Carbon::parse($request->departure_date)->startOfDay();
+            $query->where('departure_date', '=', $date);
+        }
+
+        if ($request->filled('return_date')) {
+            $date = \Carbon\Carbon::parse($request->return_date)->startOfDay();
+            $query->where('return_date', '=', $date);
+        }
+
+        return response()->json([
+            'data' => $query->orderByDesc('id')->get()
+        ]);
     }
 
     /**
@@ -29,7 +60,24 @@ class TravelRequestController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * @OA\Post(
+     *     path="/api/travel-requests",
+     *     summary="Criar um novo pedido de viagem",
+     *     tags={"Pedidos de Viagem"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"destination", "departure_date", "return_date", "status", "user_id"},
+     *             @OA\Property(property="destination", type="string", example="São Paulo"),
+     *             @OA\Property(property="departure_date", type="string", format="date", example="2025-06-01"),
+     *             @OA\Property(property="return_date", type="string", format="date", example="2025-06-10"),
+     *             @OA\Property(property="status", type="string", example="solicitado"),
+     *             @OA\Property(property="user_id", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Pedido criado com sucesso"),
+     *     @OA\Response(response=422, description="Erro de validação")
+     * )
      */
     public function store(Request $request)
     {
@@ -60,7 +108,19 @@ class TravelRequestController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * @OA\Get(
+     *     path="/api/travel-requests/{id}",
+     *     summary="Visualizar um pedido de viagem",
+     *     tags={"Pedidos de Viagem"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID do pedido de viagem",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(response=200, description="Dados do pedido")
+     * )
      */
     public function show(string $id)
     {
@@ -79,7 +139,41 @@ class TravelRequestController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * @OA\Put(
+     *     path="/api/travel-requests/{id}",
+     *     summary="Atualizar todos os dados do pedido de viagem",
+     *     tags={"Pedidos de Viagem"},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"destination", "departure_date", "return_date", "status", "user_id"},
+     *             @OA\Property(property="destination", type="string", example="Salvador"),
+     *             @OA\Property(property="departure_date", type="string", format="date", example="2025-07-01"),
+     *             @OA\Property(property="return_date", type="string", format="date", example="2025-07-10"),
+     *             @OA\Property(property="status", type="string", example="aprovado"),
+     *             @OA\Property(property="user_id", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Pedido atualizado com sucesso"),
+     *     @OA\Response(response=422, description="Erro de validação")
+     * )
+     *
+     * @OA\Patch(
+     *     path="/api/travel-requests/{id}",
+     *     summary="Atualizar apenas o status do pedido",
+     *     tags={"Pedidos de Viagem"},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"status"},
+     *             @OA\Property(property="status", type="string", example="cancelado")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Status atualizado com sucesso"),
+     *     @OA\Response(response=422, description="Erro de validação")
+     * )
      */
     public function update(Request $request, string $id)
     {
@@ -131,7 +225,13 @@ class TravelRequestController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * @OA\Delete(
+     *     path="/api/travel-requests/{id}",
+     *     summary="Excluir um pedido de viagem",
+     *     tags={"Pedidos de Viagem"},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Pedido excluído com sucesso")
+     * )
      */
     public function destroy(string $id)
     {
