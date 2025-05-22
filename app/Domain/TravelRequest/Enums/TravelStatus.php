@@ -2,6 +2,9 @@
 
 namespace App\Domain\TravelRequest\Enums;
 
+/**
+ * Primeira vez que utilizo Enums para validar os possíveis status
+ */
 enum TravelStatus : string
 {
     case SOLICITADO = 'solicitado';

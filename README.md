@@ -52,6 +52,11 @@ JWT_TTL=60
 AUTH_GUARD=api
 
 ---
+# Para notificação optei por utilizar e-mail, via log
+
+***Storage > logs*** 
+
+---
 
 ##  Controle de Progresso
 
