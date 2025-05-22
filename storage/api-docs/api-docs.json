@@ -18,7 +18,7 @@
                     "Autenticação"
                 ],
                 "summary": "Autenticação de usuário",
-                "operationId": "d3459b79c413282642be0af0a2c0f9f3",
+                "operationId": "userLogin",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -77,6 +77,54 @@
                         "description": "Erro de validação"
                     }
                 }
+            }
+        },
+        "/api/me": {
+            "get": {
+                "tags": [
+                    "Autenticação"
+                ],
+                "summary": "Retorna informações do usuário autenticado para fins de testes de authenticação",
+                "operationId": "bf6ab59c311b7be30e2ca2c59033bf92",
+                "responses": {
+                    "200": {
+                        "description": "Usuário autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "Thiago Mendes"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "example": "thiago@example.com"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2025-01-01T00:00:00Z"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token inválido ou expirado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/register": {
