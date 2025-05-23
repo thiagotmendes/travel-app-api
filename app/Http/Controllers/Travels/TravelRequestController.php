@@ -4,13 +4,12 @@ namespace App\Http\Controllers\Travels;
 
 use App\Application\UseCases\TravelRequest\CreateTravelRequest;
 use App\Application\UseCases\TravelRequest\ListTravelRequests;
-use App\Domain\TravelRequest\Enums\TravelStatus;
+use App\Application\UseCases\TravelRequest\UpdateTravelRequest;
 use App\Http\Controllers\Controller;
 use App\Infrastructure\Notifications\TravelRequestStatusNotification;
 use App\Models\TravelRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\ValidationException;
 
 class TravelRequestController extends Controller
 {
@@ -148,66 +147,27 @@ class TravelRequestController extends Controller
      * @OA\Response(response=403, description="Acesso negado (apenas admin)")
      * )
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $id,  UpdateTravelRequest $useCase)
     {
-        $data = $request->only('destination', 'departure_date', 'return_date', 'status', 'user_id');
+        try {
+            $result = $useCase->handle(
+                id: $id,
+                data: $request->only(['destination', 'departure_date', 'return_date', 'status']),
+                user: auth()->user(),
+                method: $request->method()
+            );
 
-        $travel = TravelRequest::findOrFail($id);
-
-        if (auth()->user()->hasRole('user') && $travel->user_id !== auth()->id()) {
-            return response()->json(['error' => 'Você não tem permissão para atualizar este pedido.'], 403);
-        }
-
-        if ($request->isMethod('put')) {
-            $rules = [
-                'destination' => 'required|string',
-                'departure_date' => 'required|date',
-                'return_date' => 'required|date',
-                'user_id' => 'required|exists:users,id',
-            ];
-
-            if (auth()->user()->hasRole('admin')) {
-                $rules['status'] = ['required', new Enum(TravelStatus::class)];
+            if (!empty($result['notify'])) {
+                $result['data']->user->notify(new TravelRequestStatusNotification($result['data']));
             }
 
-            $validated = Validator::make($data, $rules);
-
-            if ($validated->fails()) {
-                return response()->json(['errors' => $validated->errors()], 422);
-            }
-
-            if (!auth()->user()->hasRole('admin')) {
-                unset($data['status']);
-            }
-
-            $travel->update($data);
-
-        } elseif ($request->isMethod('patch')) {
-            if (!auth()->user()->hasRole('admin')) {
-                return response()->json(['error' => 'Somente administradores podem alterar o status.'], 403);
-            }
-
-            $validated = Validator::make($data, [
-                'status' => ['required', new Enum(TravelStatus::class)],
+            return response()->json([
+                'message' => 'Request updated successfully.',
+                'data' => $result['data']
             ]);
-
-            if ($validated->fails()) {
-                return response()->json(['errors' => $validated->errors()], 422);
-            }
-
-            $travel->update([
-                'status' => $data['status'],
-            ]);
-
-            if (in_array($data['status'], [TravelStatus::APROVADO->value, TravelStatus::CANCELADO->value])) {
-                $travel->user->notify(new TravelRequestStatusNotification($travel));
-            }
+        } catch (ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
         }
-
-        return response()->json([
-            'message' => 'Request updated successfully.',
-            'data' => $travel
-        ], 200);
     }
 
 

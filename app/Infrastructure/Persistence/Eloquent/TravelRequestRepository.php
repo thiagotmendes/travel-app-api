@@ -37,4 +37,16 @@ class TravelRequestRepository implements TravelRequestRepositoryInterface
     {
         return TravelRequest::create($data);
     }
+
+    public function update(string $id, array $data): TravelRequest
+    {
+        $travelRequest = TravelRequest::findOrFail($id);
+        $travelRequest->update($data);
+        return $travelRequest;
+    }
+
+    public function find(string $id): ?TravelRequest
+    {
+        return TravelRequest::find($id);
+    }
 }
