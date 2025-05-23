@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Travels;
 
+use App\Application\UseCases\TravelRequest\ListTravelRequests;
 use App\Notifications\TravelRequestStatusNotification;
 use Illuminate\Validation\Rules\Enum;
 use App\Domain\TravelRequest\Enums\TravelStatus;
@@ -24,34 +25,16 @@ class TravelRequestController extends Controller
      *     @OA\Response(response=200, description="Lista de pedidos de viagem")
      * )
      */
-    public function index(Request $request)
+    public function index(Request $request, ListTravelRequests $useCase)
     {
-        $query = TravelRequest::query();
+        $filters = $request->only([
+            'destination', 'user_id', 'departure_date', 'return_date'
+        ]);
 
-        if ($request->filled('destination')) {
-            $query->where('destination', 'like', '%' . $request->destination . '%');
-        }
-
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->user_id);
-        }
-
-        if ($request->filled('departure_date')) {
-            $date = \Carbon\Carbon::parse($request->departure_date)->startOfDay();
-            $query->where('departure_date', '=', $date);
-        }
-
-        if ($request->filled('return_date')) {
-            $date = \Carbon\Carbon::parse($request->return_date)->startOfDay();
-            $query->where('return_date', '=', $date);
-        }
-
-        if (auth()->user()->hasRole('user')) {
-            $query->where('user_id', auth()->id());
-        }
+        $requests = $useCase->handle($filters, auth()->user());
 
         return response()->json([
-            'data' => $query->orderByDesc('id')->get()
+            'data' => $requests
         ]);
     }
 

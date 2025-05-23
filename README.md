@@ -66,10 +66,10 @@ AUTH_GUARD=api
 | Setup Docker e banco de dados                                      | ✅ Concluído     | Estrutura de containers sendo definida     |
 | Criação das migrations e modelos                                   | ✅ Concluído     | -                                         |
 | Implementação da autenticação JWT                                  | ✅ Concluído     | -                                         |
-| CRUD de pedidos de viagem                                          | ⏳ Em andamento  | -                                         |
-| Atualização de status (com regras de permissão)                    | 🔲 A fazer      | -                                         |
-| Filtros por período e destino                                      | 🔲 A fazer      | -                                         |
-| Notificações de status                                             | 🔲 A fazer      | -                                         |
+| CRUD de pedidos de viagem                                          | ✅ Concluído     | -                                         |
+| Atualização de status (com regras de permissão)                    | ✅ Concluído     | -                                         |
+| Filtros por período e destino                                      | ✅ Concluído     | -                                         |
+| Notificações de status                                             | ✅ Concluído     | -                                         |
 | Testes unitários com PHPUnit                                       | 🔲 A fazer      | -                                         |
 | Documentação final no README.md                                    | 🔲 A fazer      | Incluir instruções de uso e testes        |
 
