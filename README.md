@@ -1,12 +1,18 @@
-# Microsserviço de Pedidos de Viagem Corporativa
+# Microsserviço de Pedidos de Viagem
 
 Este projeto é um microsserviço desenvolvido em Laravel com o objetivo de gerenciar pedidos de viagem corporativa. Ele expõe uma API RESTful com funcionalidades completas para criar, consultar, atualizar e listar pedidos de viagem, incluindo autenticação e notificações.
+
+## Composer
+
+Rode `composer install` para instalação de dependencias
 
 ---
 
 ## Docker
 
 Rode `docker-compose up -d --build` para iniciar o projeto
+
+Rode `docker exec -it onfly_app php artisan migrate:fresh --seed` Para migrations e seeders
 
 ---
 ## 📚 Documentação via Swagger
@@ -67,7 +73,6 @@ Adicione no seu `.env`:
 ```
 # JWT
 JWT_SECRET=gerado_pelo_comando_jwt:secret
-JWT_TTL=60
 
 # Autenticação
 AUTH_GUARD=api
