@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use App\Domain\TravelRequest\Enums\TravelStatus;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class TravelRequest extends Model
 {
+    use HasFactory;
+
     protected $table = 'travel_requests';
     protected $fillable = [
         'destination',

@@ -404,6 +404,9 @@
                     },
                     "422": {
                         "description": "Erro de validação"
+                    },
+                    "403": {
+                        "description": "Acesso negado (usuário comum não pode alterar status)"
                     }
                 }
             },
@@ -426,6 +429,9 @@
                 "responses": {
                     "200": {
                         "description": "Pedido excluído com sucesso"
+                    },
+                    "403": {
+                        "description": "Acesso negado (somente dono do pedido ou admin)"
                     }
                 }
             },
@@ -433,7 +439,7 @@
                 "tags": [
                     "Pedidos de Viagem"
                 ],
-                "summary": "Atualizar apenas o status do pedido",
+                "summary": "Atualizar apenas o status do pedido (apenas admin)",
                 "operationId": "c133fbf0d5e2a7f32785a6462cb2c819",
                 "parameters": [
                     {
@@ -470,6 +476,9 @@
                     },
                     "422": {
                         "description": "Erro de validação"
+                    },
+                    "403": {
+                        "description": "Acesso negado (apenas admin)"
                     }
                 }
             }

@@ -11,10 +11,14 @@ class RegisterUser
 
     public function handle(array $data)
     {
-        return $this->users->create([
+        $user = $this->users->create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' =>  Hash::make($data['password']),
         ]);
+
+        $user->assignRole('user');
+
+        return $user;
     }
 }

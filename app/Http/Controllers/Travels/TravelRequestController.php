@@ -46,6 +46,10 @@ class TravelRequestController extends Controller
             $query->where('return_date', '=', $date);
         }
 
+        if (auth()->user()->hasRole('user')) {
+            $query->where('user_id', auth()->id());
+        }
+
         return response()->json([
             'data' => $query->orderByDesc('id')->get()
         ]);
@@ -94,6 +98,10 @@ class TravelRequestController extends Controller
 
         if ($validated->fails()) {
             return response()->json(['errors' => $validated->errors()], 422);
+        }
+
+        if (!auth()->user()->hasRole('admin')) {
+            $data['status'] = TravelStatus::SOLICITADO->value;
         }
 
         TravelRequest::create([
@@ -156,54 +164,66 @@ class TravelRequestController extends Controller
      *         )
      *     ),
      *     @OA\Response(response=200, description="Pedido atualizado com sucesso"),
-     *     @OA\Response(response=422, description="Erro de validação")
+     *     @OA\Response(response=422, description="Erro de validação"),
+     *     @OA\Response(response=403, description="Acesso negado (usuário comum não pode alterar status)")
      * )
      *
      * @OA\Patch(
-     *     path="/api/travel-requests/{id}",
-     *     summary="Atualizar apenas o status do pedido",
-     *     tags={"Pedidos de Viagem"},
-     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"status"},
-     *             @OA\Property(property="status", type="string", example="cancelado")
-     *         )
-     *     ),
-     *     @OA\Response(response=200, description="Status atualizado com sucesso"),
-     *     @OA\Response(response=422, description="Erro de validação")
+     * path="/api/travel-requests/{id}",
+     * summary="Atualizar apenas o status do pedido (apenas admin)",
+     * tags={"Pedidos de Viagem"},
+     * @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     * @OA\RequestBody(
+     * required=true,
+     * @OA\JsonContent(
+     * required={"status"},
+     * @OA\Property(property="status", type="string", example="cancelado")
+     * )
+     * ),
+     * @OA\Response(response=200, description="Status atualizado com sucesso"),
+     * @OA\Response(response=422, description="Erro de validação"),
+     * @OA\Response(response=403, description="Acesso negado (apenas admin)")
      * )
      */
     public function update(Request $request, string $id)
     {
-        //
         $data = $request->only('destination', 'departure_date', 'return_date', 'status', 'user_id');
 
         $travel = TravelRequest::findOrFail($id);
 
-        if($request->isMethod('put')) {
-            $validated = Validator::make($data, [
-                'destination' => 'required',
-                'departure_date' => 'date',
-                'return_date' => 'date',
-                'status' => ['required', new Enum(TravelStatus::class)],
-                'user_id' => 'exists:users,id'
-            ]);
+        if (auth()->user()->hasRole('user') && $travel->user_id !== auth()->id()) {
+            return response()->json(['error' => 'Você não tem permissão para atualizar este pedido.'], 403);
+        }
+
+        if ($request->isMethod('put')) {
+            $rules = [
+                'destination' => 'required|string',
+                'departure_date' => 'required|date',
+                'return_date' => 'required|date',
+                'user_id' => 'required|exists:users,id',
+            ];
+
+            if (auth()->user()->hasRole('admin')) {
+                $rules['status'] = ['required', new Enum(TravelStatus::class)];
+            }
+
+            $validated = Validator::make($data, $rules);
 
             if ($validated->fails()) {
                 return response()->json(['errors' => $validated->errors()], 422);
             }
 
+            if (!auth()->user()->hasRole('admin')) {
+                unset($data['status']);
+            }
 
-            $travel->update([
-                'destination' => $data['destination'],
-                'departure_date' => $data['departure_date'],
-                'return_date' => $data['return_date'],
-                'status' => $data['status'],
-                'user_id' => $data['user_id'],
-            ]);
+            $travel->update($data);
+
         } elseif ($request->isMethod('patch')) {
+            if (!auth()->user()->hasRole('admin')) {
+                return response()->json(['error' => 'Somente administradores podem alterar o status.'], 403);
+            }
+
             $validated = Validator::make($data, [
                 'status' => ['required', new Enum(TravelStatus::class)],
             ]);
@@ -215,14 +235,18 @@ class TravelRequestController extends Controller
             $travel->update([
                 'status' => $data['status'],
             ]);
+
+            if (in_array($data['status'], [TravelStatus::APROVADO->value, TravelStatus::CANCELADO->value])) {
+                $travel->user->notify(new TravelRequestStatusNotification($travel));
+            }
         }
 
-        if (in_array($data['status'], [TravelStatus::APROVADO->value, TravelStatus::CANCELADO->value])) {
-            $travel->user->notify(new TravelRequestStatusNotification($travel));
-        }
-
-        return response()->json(['message' => 'Request updated successfully.', 'data' => $travel], 200);
+        return response()->json([
+            'message' => 'Request updated successfully.',
+            'data' => $travel
+        ], 200);
     }
+
 
     /**
      * @OA\Delete(
@@ -230,13 +254,19 @@ class TravelRequestController extends Controller
      *     summary="Excluir um pedido de viagem",
      *     tags={"Pedidos de Viagem"},
      *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Pedido excluído com sucesso")
+     *     @OA\Response(response=200, description="Pedido excluído com sucesso"),
+     *     @OA\Response(response=403, description="Acesso negado (somente dono do pedido ou admin)")
      * )
      */
     public function destroy(string $id)
     {
-        //
-        TravelRequest::destroy($id);
+        $travel = TravelRequest::findOrFail($id);
+
+        if (auth()->user()->hasRole('user') && $travel->user_id !== auth()->id()) {
+            return response()->json(['error' => 'Você não tem permissão para excluir este pedido.'], 403);
+        }
+
+        $travel->delete();
 
         return response()->json(['message' => 'Request deleted successfully.'], 200);
     }

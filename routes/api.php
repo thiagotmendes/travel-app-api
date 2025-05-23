@@ -1,22 +1,27 @@
 <?php
 
 use App\Http\Controllers\Travels\TravelRequestController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
-Route::post('/register', [RegisterController::class, 'register']);;
+Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/login', [LoginController::class, 'login']);
 
-
+// Informações do usuário autenticado
 Route::middleware('auth:api')->group(function () {
-    Route::get('/me', [loginController::class, 'getUserInformation']);
+    Route::get('/me', [LoginController::class, 'getUserInformation']);
 
-    /** Travel request */
-    Route::apiResource('travel-requests', TravelRequestController::class);
+    Route::middleware('role:user|admin')->group(function () {
+
+        Route::apiResource('travel-requests', TravelRequestController::class)->except(['update']);
+
+        Route::match(['put', 'patch'], 'travel-requests/{travel_request}', [TravelRequestController::class, 'update']);
+    });
+
+
+    Route::middleware('role:admin')->group(function () {
+         Route::patch('travel-requests/{id}/status', [TravelRequestController::class, 'updateStatus']);
+    });
 });
