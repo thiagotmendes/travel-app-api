@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Notifications;
+namespace App\Infrastructure\Notifications;
 
 use App\Models\TravelRequest;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 

@@ -32,4 +32,9 @@ class TravelRequestRepository implements TravelRequestRepositoryInterface
 
         return $query->orderByDesc('id')->get();
     }
+
+    public function create(array $data): TravelRequest
+    {
+        return TravelRequest::create($data);
+    }
 }

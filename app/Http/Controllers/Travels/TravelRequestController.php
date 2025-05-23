@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\Travels;
 
+use App\Application\UseCases\TravelRequest\CreateTravelRequest;
 use App\Application\UseCases\TravelRequest\ListTravelRequests;
-use App\Notifications\TravelRequestStatusNotification;
-use Illuminate\Validation\Rules\Enum;
 use App\Domain\TravelRequest\Enums\TravelStatus;
 use App\Http\Controllers\Controller;
+use App\Infrastructure\Notifications\TravelRequestStatusNotification;
 use App\Models\TravelRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Enum;
 
 class TravelRequestController extends Controller
 {
@@ -66,36 +67,15 @@ class TravelRequestController extends Controller
      *     @OA\Response(response=422, description="Erro de validação")
      * )
      */
-    public function store(Request $request)
+    public function store(Request $request, CreateTravelRequest $useCase)
     {
+        try {
+            $useCase->handle($request->all(), auth()->user());
 
-        $data = $request->only('destination', 'departure_date', 'return_date', 'status', 'user_id');
-
-        $validated = Validator::make($data, [
-            'destination' => 'required',
-            'departure_date' => 'date',
-            'return_date' => 'date',
-            'status' => ['required', new Enum(TravelStatus::class)],
-            'user_id' => 'exists:users,id'
-        ]);
-
-        if ($validated->fails()) {
-            return response()->json(['errors' => $validated->errors()], 422);
+            return response()->json(['message' => 'Request submitted successfully.'], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
         }
-
-        if (!auth()->user()->hasRole('admin')) {
-            $data['status'] = TravelStatus::SOLICITADO->value;
-        }
-
-        TravelRequest::create([
-            'destination' => $data['destination'],
-            'departure_date' => $data['departure_date'],
-            'return_date' => $data['return_date'],
-            'status' => $data['status'],
-            'user_id' => $data['user_id']
-        ]);
-
-        return response()->json(['message' => 'Request submitted successfully.'], 200);
     }
 
     /**
