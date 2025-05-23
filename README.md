@@ -4,6 +4,19 @@ Este projeto é um microsserviço desenvolvido em Laravel com o objetivo de gere
 
 ---
 
+## Docker
+
+Rode `docker-compose up -d --build` para iniciar o projeto
+
+---
+## 📚 Documentação via Swagger
+
+Após subir o projeto, acesse a documentação da API:
+
+http://localhost:8000/api/documentation
+
+---
+
 ## Descrição do Desafio
 
 O microsserviço deve permitir:
@@ -40,25 +53,40 @@ O microsserviço deve permitir:
 - Laravel Notifications
 
 ---
-Rode o comando
 
+## Configurações de Autenticação
+
+Rode o comando abaixo para gerar o segredo JWT:
+
+```bash
 php artisan jwt:secret
+```
 
+Adicione no seu `.env`:
+
+```
 # JWT
 JWT_SECRET=gerado_pelo_comando_jwt:secret
 JWT_TTL=60
 
 # Autenticação
 AUTH_GUARD=api
-
----
-# Para notificação optei por utilizar e-mail, via log
-
-***Storage > logs*** 
+```
 
 ---
 
-##  Controle de Progresso
+## Notificações
+
+As notificações de status são enviadas por e-mail. Neste projeto, elas são registradas no log.
+
+Acesse:
+```
+storage/logs/laravel.log
+```
+
+---
+
+## Controle de Progresso
 
 | Etapa                                                              | Status          | Observações                              |
 |--------------------------------------------------------------------|-----------------|-------------------------------------------|
@@ -70,13 +98,10 @@ AUTH_GUARD=api
 | Atualização de status (com regras de permissão)                    | ✅ Concluído     | -                                         |
 | Filtros por período e destino                                      | ✅ Concluído     | -                                         |
 | Notificações de status                                             | ✅ Concluído     | -                                         |
-| Testes unitários com PHPUnit                                       | 🔲 A fazer      | -                                         |
-| Documentação final no README.md                                    | 🔲 A fazer      | Incluir instruções de uso e testes        |
+| Testes unitários com PHPUnit                                       | 🔲 A fazer       | -                                         |
+| Documentação final no README.md                                    | 🔲 A fazer       | Incluir instruções de uso e testes        |
 
 > Legenda:
 > - 🔲 A fazer
 > - ⏳ Em andamento
 > - ✅ Concluído
-
-
----
